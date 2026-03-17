@@ -37,10 +37,11 @@ class TimerViewModel(application: Application) : AndroidViewModel(application) {
     private val quarterEffect: VibrationEffect =
         VibrationEffect.createWaveform(longArrayOf(0, 70, 60, 70), -1)
 
-    // Single long buzz — unmistakably different from the quarter double-tap;
-    // leaves no doubt the countdown is over
+    // Two long buzzes with a short gap — unmistakably different from the
+    // quarter double-tap (which is two quick 70ms taps) and leaves no doubt
+    // the countdown is over
     private val finishEffect: VibrationEffect =
-        VibrationEffect.createOneShot(600, VibrationEffect.DEFAULT_AMPLITUDE)
+        VibrationEffect.createWaveform(longArrayOf(0, 400, 150, 400), -1)
 
     private val _uiState = MutableStateFlow(
         computeUiState(TOTAL_DURATION_MS, TimerStatus.IDLE)

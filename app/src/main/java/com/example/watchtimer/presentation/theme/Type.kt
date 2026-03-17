@@ -10,7 +10,7 @@ val WatchTimerTypography = Typography(
     display1 = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Bold,
-        fontSize = 44.sp,
+        fontSize = 36.sp,
         letterSpacing = 0.sp
     )
 )
