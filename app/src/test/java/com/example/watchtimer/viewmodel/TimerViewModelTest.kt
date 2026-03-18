@@ -1,19 +1,18 @@
 package com.example.watchtimer.viewmodel
 
 import android.app.Application
-import android.os.Vibrator
+import com.example.watchtimer.service.TimerService
+import com.example.watchtimer.timer.QUARTER_DURATION_MS
 import com.example.watchtimer.timer.TOTAL_DURATION_MS
 import com.example.watchtimer.timer.TimerStatus
-import io.mockk.every
-import io.mockk.justRun
+import com.example.watchtimer.timer.computeUiState
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
-import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -21,33 +20,38 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
+/**
+ * Unit tests for [TimerViewModel].
+ *
+ * The timer tick loop now lives in [TimerService] (which requires Robolectric
+ * or an instrumented test to run). These tests cover the ViewModel's dispatch
+ * logic by:
+ *   - setting [TimerService._uiState] directly to the desired pre-condition state, and
+ *   - verifying that the correct Intent action is passed to [Application.startService].
+ *
+ * Pure timer-logic tests (quarter calculation, progress, etc.) remain in
+ * [com.example.watchtimer.timer.TimerLogicTest].
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 class TimerViewModelTest {
 
-    /**
-     * Shared scheduler so that [Dispatchers.Main] (used by viewModelScope) and
-     * [runTest] both advance virtual time together.
-     */
     private val testScheduler  = TestCoroutineScheduler()
     private val testDispatcher = StandardTestDispatcher(testScheduler)
 
-    // Mock Application + Vibrator so AndroidViewModel can be constructed in JVM tests
-    private val mockVibrator    = mockk<Vibrator>(relaxed = true)
-    private val mockApplication = mockk<Application>(relaxed = true) {
-        every { getSystemService(Vibrator::class.java) } returns mockVibrator
-        justRun { registerComponentCallbacks(any()) }
-    }
+    private val mockApplication = mockk<Application>(relaxed = true)
 
     private fun buildVm() = TimerViewModel(mockApplication)
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+        TimerService.resetState()          // always start from IDLE
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+        TimerService.resetState()
     }
 
     // ── Initial state ───────────────────────────────────────────────────────
@@ -61,85 +65,86 @@ class TimerViewModelTest {
         assertEquals(0, vm.uiState.value.displaySeconds)
     }
 
-    // ── State machine transitions ───────────────────────────────────────────
+    // ── Dispatch: correct ACTION sent for each status ───────────────────────
 
     @Test
-    fun `onTap from IDLE transitions to RUNNING`() = runTest(testDispatcher) {
-        val vm = buildVm()
+    fun `onTap from IDLE sends ACTION_START`() = runTest(testDispatcher) {
+        val vm = buildVm()              // service state = IDLE
         vm.onTap()
-        runCurrent()
-        assertEquals(TimerStatus.RUNNING, vm.uiState.value.status)
-        vm.onCleared()
+        verify { mockApplication.startService(match { it.action == TimerService.ACTION_START }) }
     }
 
     @Test
-    fun `onTap from RUNNING transitions to PAUSED`() = runTest(testDispatcher) {
+    fun `onTap from RUNNING sends ACTION_PAUSE`() = runTest(testDispatcher) {
+        TimerService._uiState.value = computeUiState(TOTAL_DURATION_MS, TimerStatus.RUNNING)
         val vm = buildVm()
-        vm.onTap(); runCurrent()   // IDLE → RUNNING
-        vm.onTap(); runCurrent()   // RUNNING → PAUSED
+        vm.onTap()
+        verify { mockApplication.startService(match { it.action == TimerService.ACTION_PAUSE }) }
+    }
+
+    @Test
+    fun `onTap from PAUSED sends ACTION_START`() = runTest(testDispatcher) {
+        TimerService._uiState.value = computeUiState(TOTAL_DURATION_MS / 2, TimerStatus.PAUSED)
+        val vm = buildVm()
+        vm.onTap()
+        verify { mockApplication.startService(match { it.action == TimerService.ACTION_START }) }
+    }
+
+    @Test
+    fun `onTap from FINISHED resets state to IDLE without starting service`() =
+        runTest(testDispatcher) {
+            TimerService._uiState.value = computeUiState(0L, TimerStatus.FINISHED)
+            val vm = buildVm()
+            vm.onTap()
+            verify(exactly = 0) { mockApplication.startService(any()) }
+            assertEquals(TimerStatus.IDLE, vm.uiState.value.status)
+            assertEquals(TOTAL_DURATION_MS, vm.uiState.value.remainingMs)
+        }
+
+    // ── Long press dispatch ─────────────────────────────────────────────────
+
+    @Test
+    fun `onLongPress from IDLE does nothing`() = runTest(testDispatcher) {
+        val vm = buildVm()
+        vm.onLongPress()
+        verify(exactly = 0) { mockApplication.startService(any()) }
+    }
+
+    @Test
+    fun `onLongPress from RUNNING sends ACTION_RESET`() = runTest(testDispatcher) {
+        TimerService._uiState.value = computeUiState(TOTAL_DURATION_MS, TimerStatus.RUNNING)
+        val vm = buildVm()
+        vm.onLongPress()
+        verify { mockApplication.startService(match { it.action == TimerService.ACTION_RESET }) }
+    }
+
+    @Test
+    fun `onLongPress from PAUSED sends ACTION_RESET`() = runTest(testDispatcher) {
+        TimerService._uiState.value = computeUiState(TOTAL_DURATION_MS / 2, TimerStatus.PAUSED)
+        val vm = buildVm()
+        vm.onLongPress()
+        verify { mockApplication.startService(match { it.action == TimerService.ACTION_RESET }) }
+    }
+
+    @Test
+    fun `onLongPress from FINISHED resets state to IDLE without starting service`() =
+        runTest(testDispatcher) {
+            TimerService._uiState.value = computeUiState(0L, TimerStatus.FINISHED)
+            val vm = buildVm()
+            vm.onLongPress()
+            verify(exactly = 0) { mockApplication.startService(any()) }
+            assertEquals(TimerStatus.IDLE, vm.uiState.value.status)
+        }
+
+    // ── Paused state preserves remainingMs ─────────────────────────────────
+
+    @Test
+    fun `paused state is reflected in uiState`() {
+        val pausedMs = TOTAL_DURATION_MS - QUARTER_DURATION_MS
+        TimerService._uiState.value = computeUiState(pausedMs, TimerStatus.PAUSED)
+        val vm = buildVm()
         assertEquals(TimerStatus.PAUSED, vm.uiState.value.status)
-    }
-
-    @Test
-    fun `onTap from PAUSED resumes to RUNNING`() = runTest(testDispatcher) {
-        val vm = buildVm()
-        vm.onTap(); runCurrent()   // IDLE → RUNNING
-        vm.onTap(); runCurrent()   // RUNNING → PAUSED
-        vm.onTap(); runCurrent()   // PAUSED → RUNNING
-        assertEquals(TimerStatus.RUNNING, vm.uiState.value.status)
-        vm.onCleared()
-    }
-
-    @Test
-    fun `timer reaches FINISHED after 180 seconds`() = runTest(testDispatcher) {
-        val vm = buildVm()
-        vm.onTap()
-        advanceTimeBy(181_000L)
-        assertEquals(TimerStatus.FINISHED, vm.uiState.value.status)
-        assertEquals(0L, vm.uiState.value.remainingMs)
-        assertEquals(0, vm.uiState.value.displayMinutes)
-        assertEquals(0, vm.uiState.value.displaySeconds)
-    }
-
-    @Test
-    fun `onTap from FINISHED resets to IDLE`() = runTest(testDispatcher) {
-        val vm = buildVm()
-        vm.onTap()
-        advanceTimeBy(181_000L)
-        vm.onTap(); runCurrent()   // FINISHED → IDLE
-        assertEquals(TimerStatus.IDLE, vm.uiState.value.status)
-        assertEquals(TOTAL_DURATION_MS, vm.uiState.value.remainingMs)
-    }
-
-    // ── Pause freezes the clock ─────────────────────────────────────────────
-
-    @Test
-    fun `paused timer does not decrement remainingMs`() = runTest(testDispatcher) {
-        val vm = buildVm()
-        vm.onTap()
-        advanceTimeBy(1_000L)
-        val frozenMs = vm.uiState.value.remainingMs
-        vm.onTap()                   // pause
-        advanceTimeBy(5_000L)        // 5 more seconds while paused
-        assertEquals(frozenMs, vm.uiState.value.remainingMs)
-    }
-
-    // ── Quarter progression ─────────────────────────────────────────────────
-
-    @Test
-    fun `completedQuarters increments each 45 seconds`() = runTest(testDispatcher) {
-        val vm = buildVm()
-        vm.onTap()
-
-        advanceTimeBy(45_100L)
+        assertEquals(pausedMs, vm.uiState.value.remainingMs)
         assertEquals(1, vm.uiState.value.completedQuarters)
-
-        advanceTimeBy(45_000L)
-        assertEquals(2, vm.uiState.value.completedQuarters)
-
-        advanceTimeBy(45_000L)
-        assertEquals(3, vm.uiState.value.completedQuarters)
-
-        vm.onCleared()
     }
 }
