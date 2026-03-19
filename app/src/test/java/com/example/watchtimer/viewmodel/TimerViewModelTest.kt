@@ -1,11 +1,12 @@
 package com.example.watchtimer.viewmodel
 
 import android.app.Application
-import com.example.watchtimer.service.TimerService
-import com.example.watchtimer.timer.QUARTER_DURATION_MS
-import com.example.watchtimer.timer.TOTAL_DURATION_MS
-import com.example.watchtimer.timer.TimerStatus
-import com.example.watchtimer.timer.computeUiState
+import de.majuwa.watchtimer.service.TimerService
+import de.majuwa.watchtimer.timer.QUARTER_DURATION_MS
+import de.majuwa.watchtimer.timer.TOTAL_DURATION_MS
+import de.majuwa.watchtimer.timer.TimerStatus
+import de.majuwa.watchtimer.timer.computeUiState
+import de.majuwa.watchtimer.viewmodel.TimerViewModel
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers

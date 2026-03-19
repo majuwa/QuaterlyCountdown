@@ -6,10 +6,12 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit4.runners.AndroidJUnit4
-import com.example.watchtimer.presentation.theme.WatchTimerTheme
-import com.example.watchtimer.timer.TimerStatus
-import com.example.watchtimer.timer.TimerUiState
-import com.example.watchtimer.timer.computeUiState
+import de.majuwa.watchtimer.presentation.QuarterProgressRing
+import de.majuwa.watchtimer.presentation.TimerScreen
+import de.majuwa.watchtimer.presentation.theme.WatchTimerTheme
+import de.majuwa.watchtimer.timer.TimerStatus
+import de.majuwa.watchtimer.timer.TimerUiState
+import de.majuwa.watchtimer.timer.computeUiState
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test

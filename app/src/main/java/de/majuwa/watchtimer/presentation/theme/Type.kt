@@ -1,4 +1,4 @@
-package com.example.watchtimer.presentation.theme
+package de.majuwa.watchtimer.presentation.theme
 
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily

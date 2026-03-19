@@ -1,11 +1,11 @@
-package com.example.watchtimer.viewmodel
+package de.majuwa.watchtimer.viewmodel
 
 import android.app.Application
 import android.content.Intent
 import androidx.lifecycle.AndroidViewModel
-import com.example.watchtimer.service.TimerService
-import com.example.watchtimer.timer.TimerStatus
-import com.example.watchtimer.timer.TimerUiState
+import de.majuwa.watchtimer.service.TimerService
+import de.majuwa.watchtimer.timer.TimerStatus
+import de.majuwa.watchtimer.timer.TimerUiState
 import kotlinx.coroutines.flow.StateFlow
 
 /**

@@ -1,4 +1,4 @@
-package com.example.watchtimer.timer
+package de.majuwa.watchtimer.timer
 
 const val TOTAL_DURATION_MS: Long = 180_000L  // 3 minutes
 const val QUARTER_DURATION_MS: Long = 45_000L  // 45 seconds per quarter

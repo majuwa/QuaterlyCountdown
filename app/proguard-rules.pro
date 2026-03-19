@@ -3,4 +3,4 @@
 # Android SDK tools/proguard/proguard-android-optimize.txt file.
 
 # Keep Wear OS entry points
--keep class com.example.watchtimer.MainActivity { *; }
+-keep class de.majuwa.watchtimer.MainActivity { *; }

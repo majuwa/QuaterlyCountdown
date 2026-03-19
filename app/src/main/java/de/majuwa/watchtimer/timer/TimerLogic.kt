@@ -1,4 +1,4 @@
-package com.example.watchtimer.timer
+package de.majuwa.watchtimer.timer
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow

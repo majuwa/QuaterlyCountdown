@@ -1,6 +1,13 @@
 package com.example.watchtimer.timer
 
 import app.cash.turbine.test
+import de.majuwa.watchtimer.timer.QUARTER_COUNT
+import de.majuwa.watchtimer.timer.TOTAL_DURATION_MS
+import de.majuwa.watchtimer.timer.TimerStatus
+import de.majuwa.watchtimer.timer.completedQuarters
+import de.majuwa.watchtimer.timer.computeUiState
+import de.majuwa.watchtimer.timer.currentQuarterProgress
+import de.majuwa.watchtimer.timer.tickerFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test

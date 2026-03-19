@@ -1,4 +1,4 @@
-package com.example.watchtimer.presentation
+package de.majuwa.watchtimer.presentation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -18,7 +18,7 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
-import com.example.watchtimer.timer.TimerUiState
+import de.majuwa.watchtimer.timer.TimerUiState
 import kotlin.math.min
 
 /**

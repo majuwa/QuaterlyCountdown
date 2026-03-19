@@ -1,4 +1,4 @@
-package com.example.watchtimer.presentation
+package de.majuwa.watchtimer.presentation
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -19,12 +19,12 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
-import com.example.watchtimer.presentation.theme.QuarterActive
-import com.example.watchtimer.presentation.theme.QuarterCompleted
-import com.example.watchtimer.presentation.theme.QuarterEmpty
-import com.example.watchtimer.timer.QUARTER_COUNT
-import com.example.watchtimer.timer.TimerStatus
-import com.example.watchtimer.timer.TimerUiState
+import de.majuwa.watchtimer.presentation.theme.QuarterActive
+import de.majuwa.watchtimer.presentation.theme.QuarterCompleted
+import de.majuwa.watchtimer.presentation.theme.QuarterEmpty
+import de.majuwa.watchtimer.timer.QUARTER_COUNT
+import de.majuwa.watchtimer.timer.TimerStatus
+import de.majuwa.watchtimer.timer.TimerUiState
 
 private const val GAP_DEGREES  = 4f
 private const val ARC_SWEEP    = 90f - GAP_DEGREES  // 86° per quarter

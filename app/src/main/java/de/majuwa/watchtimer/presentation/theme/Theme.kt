@@ -1,4 +1,4 @@
-package com.example.watchtimer.presentation.theme
+package de.majuwa.watchtimer.presentation.theme
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color

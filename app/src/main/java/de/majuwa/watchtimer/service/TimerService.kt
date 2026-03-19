@@ -1,5 +1,6 @@
-package com.example.watchtimer.service
+package de.majuwa.watchtimer.service
 
+import android.R
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,12 +10,12 @@ import android.os.IBinder
 import android.os.PowerManager
 import android.os.VibrationEffect
 import android.os.Vibrator
-import com.example.watchtimer.timer.TICK_INTERVAL_MS
-import com.example.watchtimer.timer.TOTAL_DURATION_MS
-import com.example.watchtimer.timer.TimerStatus
-import com.example.watchtimer.timer.TimerUiState
-import com.example.watchtimer.timer.computeUiState
-import com.example.watchtimer.timer.tickerFlow
+import de.majuwa.watchtimer.timer.TICK_INTERVAL_MS
+import de.majuwa.watchtimer.timer.TOTAL_DURATION_MS
+import de.majuwa.watchtimer.timer.TimerStatus
+import de.majuwa.watchtimer.timer.TimerUiState
+import de.majuwa.watchtimer.timer.computeUiState
+import de.majuwa.watchtimer.timer.tickerFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -179,7 +180,7 @@ class TimerService : Service() {
 
     private fun buildNotification(): Notification =
         Notification.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setSmallIcon(R.drawable.ic_lock_idle_alarm)
             .setContentTitle("Timer running")
             .setOngoing(true)
             .build()
