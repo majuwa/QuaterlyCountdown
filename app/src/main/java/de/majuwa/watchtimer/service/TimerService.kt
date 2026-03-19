@@ -79,9 +79,9 @@ class TimerService : Service() {
     private lateinit var vibrator: Vibrator
 
     private val quarterEffect: VibrationEffect =
-        VibrationEffect.createWaveform(longArrayOf(0, 70, 60, 70), -1)
+        VibrationEffect.createWaveform(longArrayOf(0, 70, 60, 70, 60, 70), -1)
     private val finishEffect: VibrationEffect =
-        VibrationEffect.createWaveform(longArrayOf(0, 400, 150, 400), -1)
+        VibrationEffect.createWaveform(longArrayOf(0, 400, 150, 400, 150, 400), -1)
 
     // ── Service lifecycle ─────────────────────────────────────────────────────
 
@@ -119,7 +119,7 @@ class TimerService : Service() {
     // ── Timer operations ──────────────────────────────────────────────────────
 
     private fun startTimer() {
-        if (!wakeLock.isHeld) wakeLock.acquire()
+        if (!wakeLock.isHeld) wakeLock.acquire(4*60*1000L /*4 minutes*/)
         startForeground(NOTIFICATION_ID, buildNotification())
 
         tickJob?.cancel()
