@@ -2,7 +2,6 @@
 
 [![CI](https://github.com/majuwa/QuaterlyCountdown/actions/workflows/ci.yml/badge.svg)](https://github.com/majuwa/QuaterlyCountdown/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/majuwa/QuaterlyCountdown)](https://github.com/majuwa/QuaterlyCountdown/releases/latest)
-[![codecov](https://codecov.io/gh/majuwa/QuaterlyCountdown/graph/badge.svg)](https://codecov.io/gh/majuwa/QuaterlyCountdown)
 
 A sleek, high-visibility countdown timer designed specifically for Android smartwatches. This app provides a **3-minute countdown** divided into four distinct visual quarters, perfect for HIIT training, public speaking, or productivity sprints.
 
