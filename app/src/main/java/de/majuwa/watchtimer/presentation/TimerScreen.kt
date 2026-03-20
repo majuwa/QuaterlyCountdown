@@ -34,22 +34,22 @@ fun TimerScreen(
     state: TimerUiState,
     onTap: () -> Unit,
     onLongPress: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Scaffold(
-        modifier  = modifier,
-        timeText  = { TimeText() },
-        vignette  = { Vignette(vignettePosition = VignettePosition.TopAndBottom) }
+        modifier = modifier,
+        timeText = { TimeText() },
+        vignette = { Vignette(vignettePosition = VignettePosition.TopAndBottom) },
     ) {
         BoxWithConstraints(
-            modifier = Modifier
-                .fillMaxSize()
-                .combinedClickable(
-                    onClick     = onTap,
-                    onLongClick = onLongPress
-                )
-                .semantics { contentDescription = "timer tap area" },
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .combinedClickable(
+                        onClick = onTap,
+                        onLongClick = onLongPress,
+                    ).semantics { contentDescription = "timer tap area" },
+            contentAlignment = Alignment.Center,
         ) {
             // Ring occupies the full canvas; the inner clear area is ~80% of
             // the screen's shorter dimension.
@@ -60,8 +60,8 @@ fun TimerScreen(
             // leaving a comfortable margin on all watch sizes (160–200 dp).
             val screenMin = min(maxWidth.value, maxHeight.value)
             TimerDisplay(
-                state    = state,
-                fontSize = (screenMin * 0.20f).sp
+                state = state,
+                fontSize = (screenMin * 0.20f).sp,
             )
         }
     }
@@ -71,13 +71,13 @@ fun TimerScreen(
 private fun TimerDisplay(
     state: TimerUiState,
     fontSize: TextUnit = MaterialTheme.typography.display1.fontSize,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Text(
-        text      = "%02d:%02d".format(state.displayMinutes, state.displaySeconds),
-        modifier  = modifier,
-        style     = MaterialTheme.typography.display1.copy(fontSize = fontSize),
-        color     = MaterialTheme.colors.onBackground,
-        textAlign = TextAlign.Center
+        text = "%02d:%02d".format(state.displayMinutes, state.displaySeconds),
+        modifier = modifier,
+        style = MaterialTheme.typography.display1.copy(fontSize = fontSize),
+        color = MaterialTheme.colors.onBackground,
+        textAlign = TextAlign.Center,
     )
 }

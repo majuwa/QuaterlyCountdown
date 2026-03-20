@@ -13,7 +13,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class TimerLogicTest {
-
     // ── computeUiState ──────────────────────────────────────────────────────
 
     @Test
@@ -114,12 +113,13 @@ class TimerLogicTest {
     // ── tickerFlow ──────────────────────────────────────────────────────────
 
     @Test
-    fun `tickerFlow emits three values then can be cancelled`() = runTest {
-        tickerFlow(intervalMs = 50L).test {
-            awaitItem()
-            awaitItem()
-            awaitItem()
-            cancelAndIgnoreRemainingEvents()
+    fun `tickerFlow emits three values then can be cancelled`() =
+        runTest {
+            tickerFlow(intervalMs = 50L).test {
+                awaitItem()
+                awaitItem()
+                awaitItem()
+                cancelAndIgnoreRemainingEvents()
+            }
         }
-    }
 }

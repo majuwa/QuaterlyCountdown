@@ -16,16 +16,20 @@ import kotlinx.coroutines.flow.StateFlow
  * State transitions (triggered by [onTap]):
  *   IDLE → RUNNING → PAUSED → RUNNING → … → FINISHED → (tap) → IDLE
  */
-class TimerViewModel(application: Application) : AndroidViewModel(application) {
-
+class TimerViewModel(
+    application: Application,
+) : AndroidViewModel(application) {
     val uiState: StateFlow<TimerUiState> = TimerService.uiState
 
     /** Single tap: start / pause / restart after finish. */
     fun onTap() {
         when (uiState.value.status) {
             TimerStatus.IDLE,
-            TimerStatus.PAUSED   -> sendAction(TimerService.ACTION_START)
-            TimerStatus.RUNNING  -> sendAction(TimerService.ACTION_PAUSE)
+            TimerStatus.PAUSED,
+            -> sendAction(TimerService.ACTION_START)
+
+            TimerStatus.RUNNING -> sendAction(TimerService.ACTION_PAUSE)
+
             TimerStatus.FINISHED -> TimerService.resetState()
         }
     }
@@ -33,16 +37,17 @@ class TimerViewModel(application: Application) : AndroidViewModel(application) {
     /** Long press: reset to IDLE from any non-idle state. */
     fun onLongPress() {
         when (uiState.value.status) {
-            TimerStatus.IDLE     -> Unit
+            TimerStatus.IDLE -> Unit
             TimerStatus.FINISHED -> TimerService.resetState()
-            else                 -> sendAction(TimerService.ACTION_RESET)
+            else -> sendAction(TimerService.ACTION_RESET)
         }
     }
 
     private fun sendAction(action: String) {
-        val intent = Intent(getApplication(), TimerService::class.java).apply {
-            this.action = action
-        }
+        val intent =
+            Intent(getApplication(), TimerService::class.java).apply {
+                this.action = action
+            }
         getApplication<Application>().startService(intent)
     }
 }

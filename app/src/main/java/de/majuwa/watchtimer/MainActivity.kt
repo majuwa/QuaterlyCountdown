@@ -19,9 +19,9 @@ class MainActivity : ComponentActivity() {
             val state by viewModel.uiState.collectAsStateWithLifecycle()
             WatchTimerTheme {
                 TimerScreen(
-                    state        = state,
-                    onTap        = viewModel::onTap,
-                    onLongPress  = viewModel::onLongPress
+                    state = state,
+                    onTap = viewModel::onTap,
+                    onLongPress = viewModel::onLongPress,
                 )
             }
         }

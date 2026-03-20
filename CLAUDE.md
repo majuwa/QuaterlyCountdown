@@ -102,7 +102,7 @@ Source code lives under `de.majuwa.watchtimer`. The Gradle `namespace`/`applicat
 
 `TimerLogicTest` — pure-function tests, no mocks needed. Uses Turbine (`app.cash.turbine`) for `tickerFlow` assertions.
 
-`TimerViewModelTest` — tests dispatch logic by manipulating `TimerService._uiState` directly and verifying Intent actions via MockK:
+`TimerViewModelTest` — tests dispatch logic by manipulating `TimerService.mutableUiState` directly and verifying Intent actions via MockK:
 
 ```kotlin
 @Before fun setUp() {
@@ -117,14 +117,14 @@ Source code lives under `de.majuwa.watchtimer`. The Gradle `namespace`/`applicat
 
 @Test
 fun `onTap from RUNNING sends ACTION_PAUSE`() = runTest(testDispatcher) {
-    TimerService._uiState.value = computeUiState(TOTAL_DURATION_MS, TimerStatus.RUNNING)
+    TimerService.mutableUiState.value = computeUiState(TOTAL_DURATION_MS, TimerStatus.RUNNING)
     val vm = TimerViewModel(mockApplication)
     vm.onTap()
     verify { mockApplication.startService(match { it.action == TimerService.ACTION_PAUSE }) }
 }
 ```
 
-`TimerService._uiState` and `TimerService.resetState()` are `internal` — accessible from tests in the same module without Robolectric.
+`TimerService.mutableUiState` and `TimerService.resetState()` are `internal` — accessible from tests in the same module without Robolectric.
 
 ### Instrumented tests (`src/androidTest/`)
 
@@ -148,6 +148,12 @@ After adding a feature or making any code change:
 1. **Run all tests** — `./gradlew test` must pass before considering the change done.
 2. **Update `README.md`** — if the change affects user-facing behaviour, features, gestures, or visual design.
 3. **Update `CLAUDE.md`** — if the change affects architecture, key conventions, package structure, tech stack, or testing patterns.
+4. **Run Spotless**
+5. **Rrun Detect**
+
+## Coding Guidelines
+* do not suppress issues, unless asked to
+* if suppress is best decision ask whether it should be done or an alternative should be found
 
 ## Additional Reference
 

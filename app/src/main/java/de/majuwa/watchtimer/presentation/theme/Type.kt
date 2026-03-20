@@ -6,11 +6,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Typography
 
-val WatchTimerTypography = Typography(
-    display1 = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Bold,
-        fontSize = 36.sp,
-        letterSpacing = 0.sp
+val WatchTimerTypography =
+    Typography(
+        display1 =
+            TextStyle(
+                fontFamily = FontFamily.Default,
+                fontWeight = FontWeight.Bold,
+                fontSize = 36.sp,
+                letterSpacing = 0.sp,
+            ),
     )
-)

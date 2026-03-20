@@ -8,12 +8,13 @@ import kotlinx.coroutines.flow.flow
  * Emits [Unit] every [intervalMs] milliseconds indefinitely.
  * Uses coroutine [delay], so it participates in virtual-time test scheduling.
  */
-fun tickerFlow(intervalMs: Long = TICK_INTERVAL_MS): Flow<Unit> = flow {
-    while (true) {
-        delay(intervalMs)
-        emit(Unit)
+fun tickerFlow(intervalMs: Long = TICK_INTERVAL_MS): Flow<Unit> =
+    flow {
+        while (true) {
+            delay(intervalMs)
+            emit(Unit)
+        }
     }
-}
 
 /**
  * Returns how many full quarters have elapsed given [remainingMs].
@@ -41,7 +42,10 @@ fun currentQuarterProgress(remainingMs: Long): Float {
  * Derives a complete [TimerUiState] from [remainingMs] and [status].
  * This is the single source of truth for all UI-facing data.
  */
-fun computeUiState(remainingMs: Long, status: TimerStatus): TimerUiState {
+fun computeUiState(
+    remainingMs: Long,
+    status: TimerStatus,
+): TimerUiState {
     val clampedMs = remainingMs.coerceIn(0L, TOTAL_DURATION_MS)
     val totalSeconds = (clampedMs / 1_000L).toInt()
     return TimerUiState(
@@ -50,6 +54,6 @@ fun computeUiState(remainingMs: Long, status: TimerStatus): TimerUiState {
         completedQuarters = completedQuarters(clampedMs),
         currentQuarterProgress = currentQuarterProgress(clampedMs),
         displayMinutes = totalSeconds / 60,
-        displaySeconds = totalSeconds % 60
+        displaySeconds = totalSeconds % 60,
     )
 }

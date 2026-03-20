@@ -41,7 +41,6 @@ import kotlinx.coroutines.launch
  * can observe it without binding.
  */
 class TimerService : Service() {
-
     // ── Shared state (survives service recreation while companion object lives) ──
 
     companion object {
@@ -54,14 +53,15 @@ class TimerService : Service() {
 
         // Internal visibility allows unit tests (same module) to set state directly
         // without needing Robolectric to run the full service.
-        internal val _uiState = MutableStateFlow(
-            computeUiState(TOTAL_DURATION_MS, TimerStatus.IDLE)
-        )
-        val uiState: StateFlow<TimerUiState> = _uiState.asStateFlow()
+        internal val mutableUiState =
+            MutableStateFlow(
+                computeUiState(TOTAL_DURATION_MS, TimerStatus.IDLE),
+            )
+        val uiState: StateFlow<TimerUiState> = mutableUiState.asStateFlow()
 
         /** Reset state directly without needing the service to be running. */
         internal fun resetState() {
-            _uiState.value = computeUiState(TOTAL_DURATION_MS, TimerStatus.IDLE)
+            mutableUiState.value = computeUiState(TOTAL_DURATION_MS, TimerStatus.IDLE)
         }
     }
 
@@ -88,16 +88,21 @@ class TimerService : Service() {
     override fun onCreate() {
         super.onCreate()
         vibrator = getSystemService(Vibrator::class.java)
-        wakeLock = (getSystemService(POWER_SERVICE) as PowerManager)
-            .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "WatchTimer::TimerWakeLock")
+        wakeLock =
+            (getSystemService(POWER_SERVICE) as PowerManager)
+                .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "WatchTimer::TimerWakeLock")
         createNotificationChannel()
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int,
+    ): Int {
         // Restore instance state from the companion StateFlow so that resuming
         // after a stopSelf() (e.g. after PAUSE) works correctly.
-        remainingMs = _uiState.value.remainingMs
-        lastCompletedQuarters = _uiState.value.completedQuarters
+        remainingMs = mutableUiState.value.remainingMs
+        lastCompletedQuarters = mutableUiState.value.completedQuarters
 
         when (intent?.action) {
             ACTION_START -> startTimer()
@@ -119,39 +124,40 @@ class TimerService : Service() {
     // ── Timer operations ──────────────────────────────────────────────────────
 
     private fun startTimer() {
-        if (!wakeLock.isHeld) wakeLock.acquire(4*60*1000L /*4 minutes*/)
+        if (!wakeLock.isHeld) wakeLock.acquire(4 * 60 * 1000L) // 4 minutes
         startForeground(NOTIFICATION_ID, buildNotification())
 
         tickJob?.cancel()
-        tickJob = scope.launch {
-            val thisJob = coroutineContext.job
-            tickerFlow(TICK_INTERVAL_MS).collect {
-                remainingMs -= TICK_INTERVAL_MS
-                if (remainingMs <= 0L) {
-                    remainingMs = 0L
-                    _uiState.value = computeUiState(0L, TimerStatus.FINISHED)
-                    vibrator.vibrate(finishEffect)
-                    thisJob.cancel()
-                    releaseAndStopForeground()
-                    stopSelf()
-                } else {
-                    val newState = computeUiState(remainingMs, TimerStatus.RUNNING)
-                    if (newState.completedQuarters > lastCompletedQuarters) {
-                        lastCompletedQuarters = newState.completedQuarters
-                        vibrator.vibrate(quarterEffect)
+        tickJob =
+            scope.launch {
+                val thisJob = coroutineContext.job
+                tickerFlow(TICK_INTERVAL_MS).collect {
+                    remainingMs -= TICK_INTERVAL_MS
+                    if (remainingMs <= 0L) {
+                        remainingMs = 0L
+                        mutableUiState.value = computeUiState(0L, TimerStatus.FINISHED)
+                        vibrator.vibrate(finishEffect)
+                        thisJob.cancel()
+                        releaseAndStopForeground()
+                        stopSelf()
+                    } else {
+                        val newState = computeUiState(remainingMs, TimerStatus.RUNNING)
+                        if (newState.completedQuarters > lastCompletedQuarters) {
+                            lastCompletedQuarters = newState.completedQuarters
+                            vibrator.vibrate(quarterEffect)
+                        }
+                        mutableUiState.value = newState
                     }
-                    _uiState.value = newState
                 }
             }
-        }
         // Reflect RUNNING immediately without waiting for the first tick
-        _uiState.value = computeUiState(remainingMs, TimerStatus.RUNNING)
+        mutableUiState.value = computeUiState(remainingMs, TimerStatus.RUNNING)
     }
 
     private fun pauseAndStop() {
         tickJob?.cancel()
         tickJob = null
-        _uiState.value = computeUiState(remainingMs, TimerStatus.PAUSED)
+        mutableUiState.value = computeUiState(remainingMs, TimerStatus.PAUSED)
         releaseAndStopForeground()
         stopSelf()
     }
@@ -172,14 +178,18 @@ class TimerService : Service() {
     // ── Notification ──────────────────────────────────────────────────────────
 
     private fun createNotificationChannel() {
-        val channel = NotificationChannel(
-            CHANNEL_ID, "Timer", NotificationManager.IMPORTANCE_LOW
-        )
+        val channel =
+            NotificationChannel(
+                CHANNEL_ID,
+                "Timer",
+                NotificationManager.IMPORTANCE_LOW,
+            )
         getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
 
     private fun buildNotification(): Notification =
-        Notification.Builder(this, CHANNEL_ID)
+        Notification
+            .Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_lock_idle_alarm)
             .setContentTitle("Timer running")
             .setOngoing(true)

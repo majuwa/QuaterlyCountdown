@@ -26,8 +26,8 @@ import de.majuwa.watchtimer.timer.QUARTER_COUNT
 import de.majuwa.watchtimer.timer.TimerStatus
 import de.majuwa.watchtimer.timer.TimerUiState
 
-private const val GAP_DEGREES  = 4f
-private const val ARC_SWEEP    = 90f - GAP_DEGREES  // 86° per quarter
+private const val GAP_DEGREES = 4f
+private const val ARC_SWEEP = 90f - GAP_DEGREES // 86° per quarter
 
 /**
  * Draws the four-quarter progress ring using [Canvas].
@@ -42,31 +42,33 @@ private const val ARC_SWEEP    = 90f - GAP_DEGREES  // 86° per quarter
 @Composable
 fun QuarterProgressRing(
     state: TimerUiState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "quarter_blink")
     val blinkAlpha by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue  = 0.25f,
-        animationSpec = infiniteRepeatable(
-            animation  = tween(durationMillis = 600, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "blinkAlpha"
+        targetValue = 0.25f,
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 600, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "blinkAlpha",
     )
 
     // Only pulse when the timer is actively running; freeze solid otherwise
     val activeAlpha = if (state.status == TimerStatus.RUNNING) blinkAlpha else 1f
 
     Canvas(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(8.dp)
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(8.dp),
     ) {
         val strokeWidth = size.minDimension * 0.065f
-        val ringRadius  = size.minDimension / 2f - strokeWidth / 2f
-        val topLeft     = Offset(center.x - ringRadius, center.y - ringRadius)
-        val arcSize     = Size(ringRadius * 2f, ringRadius * 2f)
+        val ringRadius = size.minDimension / 2f - strokeWidth / 2f
+        val topLeft = Offset(center.x - ringRadius, center.y - ringRadius)
+        val arcSize = Size(ringRadius * 2f, ringRadius * 2f)
 
         repeat(QUARTER_COUNT) { index ->
             // Quarter 0 starts at 12 o'clock; each subsequent quarter is +90°
@@ -74,16 +76,39 @@ fun QuarterProgressRing(
 
             when {
                 index < state.completedQuarters -> {
-                    drawQuarterArc(topLeft, arcSize, startAngle, ARC_SWEEP,
-                        QuarterCompleted, strokeWidth, alpha = 1f)
+                    drawQuarterArc(
+                        topLeft,
+                        arcSize,
+                        startAngle,
+                        ARC_SWEEP,
+                        QuarterCompleted,
+                        strokeWidth,
+                        alpha = 1f,
+                    )
                 }
+
                 index == state.completedQuarters && state.status != TimerStatus.IDLE -> {
-                    drawQuarterArc(topLeft, arcSize, startAngle, ARC_SWEEP,
-                        QuarterActive, strokeWidth, alpha = activeAlpha)
+                    drawQuarterArc(
+                        topLeft,
+                        arcSize,
+                        startAngle,
+                        ARC_SWEEP,
+                        QuarterActive,
+                        strokeWidth,
+                        alpha = activeAlpha,
+                    )
                 }
+
                 else -> {
-                    drawQuarterArc(topLeft, arcSize, startAngle, ARC_SWEEP,
-                        QuarterEmpty, strokeWidth, alpha = 1f)
+                    drawQuarterArc(
+                        topLeft,
+                        arcSize,
+                        startAngle,
+                        ARC_SWEEP,
+                        QuarterEmpty,
+                        strokeWidth,
+                        alpha = 1f,
+                    )
                 }
             }
         }
@@ -97,16 +122,16 @@ private fun DrawScope.drawQuarterArc(
     sweepAngle: Float,
     color: Color,
     strokeWidth: Float,
-    alpha: Float
+    alpha: Float,
 ) {
     drawArc(
-        color      = color,
+        color = color,
         startAngle = startAngle,
         sweepAngle = sweepAngle,
-        useCenter  = false,
-        topLeft    = topLeft,
-        size       = size,
-        alpha      = alpha,
-        style      = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+        useCenter = false,
+        topLeft = topLeft,
+        size = size,
+        alpha = alpha,
+        style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
     )
 }

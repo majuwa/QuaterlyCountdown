@@ -28,7 +28,6 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class TimerScreenTest {
-
     @get:Rule
     val composeTestRule = createComposeRule()
 
@@ -48,7 +47,7 @@ class TimerScreenTest {
             WatchTimerTheme {
                 TimerScreen(
                     state = computeUiState(0L, TimerStatus.FINISHED),
-                    onTap = {}
+                    onTap = {},
                 )
             }
         }
@@ -62,7 +61,7 @@ class TimerScreenTest {
             WatchTimerTheme {
                 TimerScreen(
                     state = computeUiState(90_000L, TimerStatus.RUNNING),
-                    onTap = {}
+                    onTap = {},
                 )
             }
         }
@@ -88,7 +87,7 @@ class TimerScreenTest {
             computeUiState(TOTAL_DURATION_MS_TEST, TimerStatus.IDLE),
             computeUiState(135_000L, TimerStatus.RUNNING),
             computeUiState(90_000L, TimerStatus.PAUSED),
-            computeUiState(0L, TimerStatus.FINISHED)
+            computeUiState(0L, TimerStatus.FINISHED),
         ).forEach { state ->
             composeTestRule.setContent {
                 WatchTimerTheme { QuarterProgressRing(state = state) }
