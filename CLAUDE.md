@@ -141,6 +141,14 @@ composeTestRule.onNodeWithText("03:00").assertIsDisplayed()
 
 Requires a Wear OS emulator (API 30+): Android Studio → Device Manager → Create Device → Wear OS, system image Wear OS 3 (API 30) or newer.
 
+## After Every Code Change
+
+After adding a feature or making any code change:
+
+1. **Run all tests** — `./gradlew test` must pass before considering the change done.
+2. **Update `README.md`** — if the change affects user-facing behaviour, features, gestures, or visual design.
+3. **Update `CLAUDE.md`** — if the change affects architecture, key conventions, package structure, tech stack, or testing patterns.
+
 ## Additional Reference
 
 - `docs/architecture.md` — layer diagrams, state machine, ring drawing details, battery efficiency notes, and ambient mode upgrade path. Note: the ViewModel section there describes an older design (tick loop in ViewModel); the service-based architecture above is current.
