@@ -9,7 +9,8 @@ A sleek, high-visibility countdown timer designed specifically for Android smart
 * **Fixed 3-Minute Timer:** No-fuss, one-tap start.
 * **Visual Progress Ring:** A circular ring divided into four 90-degree segments.
 * **Active Quarter Blinking:** The current segment pulses/blinks to give you an at-a-glance status of your progress.
-* **Haptic Feedback:** Two short taps on each quarter transition; a single long buzz when the countdown ends.
+* **Haptic Feedback:** Three short pulses on each quarter transition; three long buzzes when the countdown ends.
+* **Runs When Screen Off:** A foreground service with a wake lock keeps the timer ticking accurately even when the watch display turns off.
 * **Wear OS Optimized:** High-contrast UI designed for readability on small circular and square displays.
 
 ---
@@ -55,7 +56,7 @@ $$\text{Quarter Duration} = \frac{180\text{ seconds}}{4} = 45\text{ seconds}$$
 
 * **Language:** Kotlin
 * **Framework:** Jetpack Compose for Wear OS
-* **Min SDK:** API 30 (Wear OS 3.0+)
+* **Min SDK:** API 36 (Wear OS 3.0+)
 * **Tooling:** Android Studio Jellyfish or newer
 
 ---
