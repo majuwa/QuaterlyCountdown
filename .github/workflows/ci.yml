@@ -28,11 +28,22 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
+      - name: Check formatting (Spotless)
+        run: ./gradlew spotlessCheck
+
+      - name: Static analysis (Detekt)
+        run: ./gradlew detekt
+
       - name: Build debug APK
         run: ./gradlew assembleDebug
 
-      - name: Run unit tests
-        run: ./gradlew testDebugUnitTest
+      - name: Run unit tests with coverage
+        run: ./gradlew testDebugUnitTest koverXmlReportDebug
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: app/build/reports/kover/reportDebug.xml
 
       - name: Upload test results
         if: always()

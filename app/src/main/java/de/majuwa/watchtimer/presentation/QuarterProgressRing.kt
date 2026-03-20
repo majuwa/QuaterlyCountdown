@@ -29,6 +29,29 @@ import de.majuwa.watchtimer.timer.TimerUiState
 private const val GAP_DEGREES = 4f
 private const val ARC_SWEEP = 90f - GAP_DEGREES // 86° per quarter
 
+private data class ArcStyle(
+    val color: Color,
+    val strokeWidth: Float,
+    val alpha: Float,
+)
+
+/** Returns the alpha for the active-quarter blink animation, frozen solid when not RUNNING. */
+@Composable
+private fun rememberActiveAlpha(status: TimerStatus): Float {
+    val infiniteTransition = rememberInfiniteTransition(label = "quarter_blink")
+    val blinkAlpha by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 0.25f,
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(durationMillis = 600, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "blinkAlpha",
+    )
+    return if (status == TimerStatus.RUNNING) blinkAlpha else 1f
+}
+
 /**
  * Draws the four-quarter progress ring using [Canvas].
  *
@@ -44,20 +67,7 @@ fun QuarterProgressRing(
     state: TimerUiState,
     modifier: Modifier = Modifier,
 ) {
-    val infiniteTransition = rememberInfiniteTransition(label = "quarter_blink")
-    val blinkAlpha by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 0.25f,
-        animationSpec =
-            infiniteRepeatable(
-                animation = tween(durationMillis = 600, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse,
-            ),
-        label = "blinkAlpha",
-    )
-
-    // Only pulse when the timer is actively running; freeze solid otherwise
-    val activeAlpha = if (state.status == TimerStatus.RUNNING) blinkAlpha else 1f
+    val activeAlpha = rememberActiveAlpha(state.status)
 
     Canvas(
         modifier =
@@ -73,44 +83,21 @@ fun QuarterProgressRing(
         repeat(QUARTER_COUNT) { index ->
             // Quarter 0 starts at 12 o'clock; each subsequent quarter is +90°
             val startAngle = 270f + index * 90f + GAP_DEGREES / 2f
+            val arcStyle =
+                when {
+                    index < state.completedQuarters -> {
+                        ArcStyle(QuarterCompleted, strokeWidth, 1f)
+                    }
 
-            when {
-                index < state.completedQuarters -> {
-                    drawQuarterArc(
-                        topLeft,
-                        arcSize,
-                        startAngle,
-                        ARC_SWEEP,
-                        QuarterCompleted,
-                        strokeWidth,
-                        alpha = 1f,
-                    )
-                }
+                    index == state.completedQuarters && state.status != TimerStatus.IDLE -> {
+                        ArcStyle(QuarterActive, strokeWidth, activeAlpha)
+                    }
 
-                index == state.completedQuarters && state.status != TimerStatus.IDLE -> {
-                    drawQuarterArc(
-                        topLeft,
-                        arcSize,
-                        startAngle,
-                        ARC_SWEEP,
-                        QuarterActive,
-                        strokeWidth,
-                        alpha = activeAlpha,
-                    )
+                    else -> {
+                        ArcStyle(QuarterEmpty, strokeWidth, 1f)
+                    }
                 }
-
-                else -> {
-                    drawQuarterArc(
-                        topLeft,
-                        arcSize,
-                        startAngle,
-                        ARC_SWEEP,
-                        QuarterEmpty,
-                        strokeWidth,
-                        alpha = 1f,
-                    )
-                }
-            }
+            drawQuarterArc(topLeft, arcSize, startAngle, ARC_SWEEP, arcStyle)
         }
     }
 }
@@ -120,18 +107,16 @@ private fun DrawScope.drawQuarterArc(
     size: Size,
     startAngle: Float,
     sweepAngle: Float,
-    color: Color,
-    strokeWidth: Float,
-    alpha: Float,
+    style: ArcStyle,
 ) {
     drawArc(
-        color = color,
+        color = style.color,
         startAngle = startAngle,
         sweepAngle = sweepAngle,
         useCenter = false,
         topLeft = topLeft,
         size = size,
-        alpha = alpha,
-        style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
+        alpha = style.alpha,
+        style = Stroke(width = style.strokeWidth, cap = StrokeCap.Round),
     )
 }
