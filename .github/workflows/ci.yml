@@ -38,12 +38,30 @@ jobs:
         run: ./gradlew assembleDebug
 
       - name: Run unit tests with coverage
-        run: ./gradlew testDebugUnitTest koverXmlReportDebug
+        run: ./gradlew testDebugUnitTest koverXmlReportDebug koverHtmlReportDebug
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+      - name: Report coverage summary
+        run: |
+          XML=app/build/reports/kover/reportDebug.xml
+          MISSED=$(python3 -c "
+          import xml.etree.ElementTree as ET
+          root = ET.parse('$XML').getroot()
+          for c in root.iter('counter'):
+              if c.get('type') == 'LINE':
+                  missed, covered = int(c.get('missed')), int(c.get('covered'))
+                  total = missed + covered
+                  pct = covered * 100 // total if total else 0
+                  print(f'{pct}% ({covered}/{total} lines)')
+                  break
+          ")
+          echo "### Coverage: $MISSED" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          files: app/build/reports/kover/reportDebug.xml
+          name: coverage-report
+          path: app/build/reports/kover/htmlDebug/
 
       - name: Upload test results
         if: always()
