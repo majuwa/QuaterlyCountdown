@@ -1,13 +1,17 @@
 package com.example.watchtimer.viewmodel
 
 import android.app.Application
+import android.content.Intent
 import de.majuwa.watchtimer.service.TimerService
 import de.majuwa.watchtimer.timer.QUARTER_DURATION_MS
 import de.majuwa.watchtimer.timer.TOTAL_DURATION_MS
 import de.majuwa.watchtimer.timer.TimerStatus
 import de.majuwa.watchtimer.timer.computeUiState
 import de.majuwa.watchtimer.viewmodel.TimerViewModel
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkConstructor
+import io.mockk.unmockkConstructor
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -47,12 +51,15 @@ class TimerViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         TimerService.resetState()          // always start from IDLE
+        mockkConstructor(Intent::class)
+        every { anyConstructed<Intent>().setAction(any()) } returns mockk(relaxed = true)
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
         TimerService.resetState()
+        unmockkConstructor(Intent::class)
     }
 
     // ── Initial state ───────────────────────────────────────────────────────
@@ -72,7 +79,8 @@ class TimerViewModelTest {
     fun `onTap from IDLE sends ACTION_START`() = runTest(testDispatcher) {
         val vm = buildVm()              // service state = IDLE
         vm.onTap()
-        verify { mockApplication.startService(match { it.action == TimerService.ACTION_START }) }
+        verify { anyConstructed<Intent>().setAction(TimerService.ACTION_START) }
+        verify { mockApplication.startService(any()) }
     }
 
     @Test
@@ -80,7 +88,8 @@ class TimerViewModelTest {
         TimerService._uiState.value = computeUiState(TOTAL_DURATION_MS, TimerStatus.RUNNING)
         val vm = buildVm()
         vm.onTap()
-        verify { mockApplication.startService(match { it.action == TimerService.ACTION_PAUSE }) }
+        verify { anyConstructed<Intent>().setAction(TimerService.ACTION_PAUSE) }
+        verify { mockApplication.startService(any()) }
     }
 
     @Test
@@ -88,7 +97,8 @@ class TimerViewModelTest {
         TimerService._uiState.value = computeUiState(TOTAL_DURATION_MS / 2, TimerStatus.PAUSED)
         val vm = buildVm()
         vm.onTap()
-        verify { mockApplication.startService(match { it.action == TimerService.ACTION_START }) }
+        verify { anyConstructed<Intent>().setAction(TimerService.ACTION_START) }
+        verify { mockApplication.startService(any()) }
     }
 
     @Test
@@ -116,7 +126,8 @@ class TimerViewModelTest {
         TimerService._uiState.value = computeUiState(TOTAL_DURATION_MS, TimerStatus.RUNNING)
         val vm = buildVm()
         vm.onLongPress()
-        verify { mockApplication.startService(match { it.action == TimerService.ACTION_RESET }) }
+        verify { anyConstructed<Intent>().setAction(TimerService.ACTION_RESET) }
+        verify { mockApplication.startService(any()) }
     }
 
     @Test
@@ -124,7 +135,8 @@ class TimerViewModelTest {
         TimerService._uiState.value = computeUiState(TOTAL_DURATION_MS / 2, TimerStatus.PAUSED)
         val vm = buildVm()
         vm.onLongPress()
-        verify { mockApplication.startService(match { it.action == TimerService.ACTION_RESET }) }
+        verify { anyConstructed<Intent>().setAction(TimerService.ACTION_RESET) }
+        verify { mockApplication.startService(any()) }
     }
 
     @Test
