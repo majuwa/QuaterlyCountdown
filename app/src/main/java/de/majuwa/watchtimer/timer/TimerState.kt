@@ -5,6 +5,15 @@ const val QUARTER_DURATION_MS: Long = 45_000L // 45 seconds per quarter
 const val QUARTER_COUNT: Int = 4
 const val TICK_INTERVAL_MS: Long = 100L
 
+enum class TimerMode { TWO_MINUTES, THREE_MINUTES }
+
+data class TimerConfig(val mode: TimerMode) {
+    val totalDurationMs: Long get() = if (mode == TimerMode.TWO_MINUTES) 120_000L else 180_000L
+    val quarterDurationMs: Long get() = totalDurationMs / QUARTER_COUNT
+}
+
+val DEFAULT_CONFIG = TimerConfig(TimerMode.THREE_MINUTES)
+
 enum class TimerStatus {
     IDLE,
     RUNNING,
@@ -21,4 +30,5 @@ data class TimerUiState(
     val currentQuarterProgress: Float = 0f,
     val displayMinutes: Int = 3,
     val displaySeconds: Int = 0,
+    val config: TimerConfig = DEFAULT_CONFIG,
 )

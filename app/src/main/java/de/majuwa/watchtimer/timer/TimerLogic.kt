@@ -20,22 +20,22 @@ fun tickerFlow(intervalMs: Long = TICK_INTERVAL_MS): Flow<Unit> =
  * Returns how many full quarters have elapsed given [remainingMs].
  * Result is clamped to [0, QUARTER_COUNT].
  */
-fun completedQuarters(remainingMs: Long): Int {
-    val clampedMs = remainingMs.coerceIn(0L, TOTAL_DURATION_MS)
-    val elapsedMs = TOTAL_DURATION_MS - clampedMs
-    return (elapsedMs / QUARTER_DURATION_MS).toInt().coerceIn(0, QUARTER_COUNT)
+fun completedQuarters(remainingMs: Long, config: TimerConfig = DEFAULT_CONFIG): Int {
+    val clampedMs = remainingMs.coerceIn(0L, config.totalDurationMs)
+    val elapsedMs = config.totalDurationMs - clampedMs
+    return (elapsedMs / config.quarterDurationMs).toInt().coerceIn(0, QUARTER_COUNT)
 }
 
 /**
  * Returns the fraction of the current (active) quarter that has been consumed (0.0–1.0).
  * Returns 1.0 when [remainingMs] is 0 (all time elapsed).
  */
-fun currentQuarterProgress(remainingMs: Long): Float {
-    val clampedMs = remainingMs.coerceIn(0L, TOTAL_DURATION_MS)
+fun currentQuarterProgress(remainingMs: Long, config: TimerConfig = DEFAULT_CONFIG): Float {
+    val clampedMs = remainingMs.coerceIn(0L, config.totalDurationMs)
     if (clampedMs <= 0L) return 1f
-    val elapsedMs = TOTAL_DURATION_MS - clampedMs
-    val elapsedInQuarter = elapsedMs % QUARTER_DURATION_MS
-    return elapsedInQuarter.toFloat() / QUARTER_DURATION_MS.toFloat()
+    val elapsedMs = config.totalDurationMs - clampedMs
+    val elapsedInQuarter = elapsedMs % config.quarterDurationMs
+    return elapsedInQuarter.toFloat() / config.quarterDurationMs.toFloat()
 }
 
 /**
@@ -45,15 +45,17 @@ fun currentQuarterProgress(remainingMs: Long): Float {
 fun computeUiState(
     remainingMs: Long,
     status: TimerStatus,
+    config: TimerConfig = DEFAULT_CONFIG,
 ): TimerUiState {
-    val clampedMs = remainingMs.coerceIn(0L, TOTAL_DURATION_MS)
+    val clampedMs = remainingMs.coerceIn(0L, config.totalDurationMs)
     val totalSeconds = (clampedMs / 1_000L).toInt()
     return TimerUiState(
         remainingMs = clampedMs,
         status = status,
-        completedQuarters = completedQuarters(clampedMs),
-        currentQuarterProgress = currentQuarterProgress(clampedMs),
+        completedQuarters = completedQuarters(clampedMs, config),
+        currentQuarterProgress = currentQuarterProgress(clampedMs, config),
         displayMinutes = totalSeconds / 60,
         displaySeconds = totalSeconds % 60,
+        config = config,
     )
 }

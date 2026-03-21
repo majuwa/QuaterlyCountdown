@@ -9,9 +9,12 @@ import androidx.test.ext.junit4.runners.AndroidJUnit4
 import de.majuwa.watchtimer.presentation.QuarterProgressRing
 import de.majuwa.watchtimer.presentation.TimerScreen
 import de.majuwa.watchtimer.presentation.theme.WatchTimerTheme
+import de.majuwa.watchtimer.timer.TimerConfig
+import de.majuwa.watchtimer.timer.TimerMode
 import de.majuwa.watchtimer.timer.TimerStatus
 import de.majuwa.watchtimer.timer.TimerUiState
 import de.majuwa.watchtimer.timer.computeUiState
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -32,13 +35,14 @@ class TimerScreenTest {
     val composeTestRule = createComposeRule()
 
     @Test
-    fun idleState_displaysThreeMinutes() {
+    fun idleState_displaysModeSelector() {
         composeTestRule.setContent {
             WatchTimerTheme {
                 TimerScreen(state = TimerUiState(), onTap = {})
             }
         }
-        composeTestRule.onNodeWithText("03:00").assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription("select 3 minute timer").assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription("select 2 minute timer").assertIsDisplayed()
     }
 
     @Test
@@ -73,11 +77,45 @@ class TimerScreenTest {
         var tapped = false
         composeTestRule.setContent {
             WatchTimerTheme {
-                TimerScreen(state = TimerUiState(), onTap = { tapped = true })
+                TimerScreen(
+                    state = computeUiState(90_000L, TimerStatus.RUNNING),
+                    onTap = { tapped = true },
+                )
             }
         }
         composeTestRule.onNodeWithContentDescription("timer tap area").performClick()
         assertTrue("onTap should have been called", tapped)
+    }
+
+    @Test
+    fun idleState_tappingLowerHalf_invokesOnSelectModeWithTwoMinutes() {
+        var selectedMode: TimerMode? = null
+        composeTestRule.setContent {
+            WatchTimerTheme {
+                TimerScreen(
+                    state = TimerUiState(),
+                    onTap = {},
+                    onSelectMode = { selectedMode = it },
+                )
+            }
+        }
+        composeTestRule.onNodeWithContentDescription("select 2 minute timer").performClick()
+        assertEquals(TimerMode.TWO_MINUTES, selectedMode)
+    }
+
+    @Test
+    fun runningState_twoMinConfig_displaysCorrectTime() {
+        val config = TimerConfig(TimerMode.TWO_MINUTES)
+        // 60 000ms remaining → 01:00
+        composeTestRule.setContent {
+            WatchTimerTheme {
+                TimerScreen(
+                    state = computeUiState(60_000L, TimerStatus.RUNNING, config),
+                    onTap = {},
+                )
+            }
+        }
+        composeTestRule.onNodeWithText("01:00").assertIsDisplayed()
     }
 
     @Test

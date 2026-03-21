@@ -18,6 +18,8 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
+import de.majuwa.watchtimer.timer.TimerMode
+import de.majuwa.watchtimer.timer.TimerStatus
 import de.majuwa.watchtimer.timer.TimerUiState
 import kotlin.math.min
 
@@ -34,6 +36,7 @@ fun TimerScreen(
     state: TimerUiState,
     onTap: () -> Unit,
     onLongPress: () -> Unit = {},
+    onSelectMode: (TimerMode) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -41,28 +44,32 @@ fun TimerScreen(
         timeText = { TimeText() },
         vignette = { Vignette(vignettePosition = VignettePosition.TopAndBottom) },
     ) {
-        BoxWithConstraints(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .combinedClickable(
-                        onClick = onTap,
-                        onLongClick = onLongPress,
-                    ).semantics { contentDescription = "timer tap area" },
-            contentAlignment = Alignment.Center,
-        ) {
-            // Ring occupies the full canvas; the inner clear area is ~80% of
-            // the screen's shorter dimension.
-            QuarterProgressRing(state = state)
+        if (state.status == TimerStatus.IDLE) {
+            TimerModeSelector(onSelect = onSelectMode)
+        } else {
+            BoxWithConstraints(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .combinedClickable(
+                            onClick = onTap,
+                            onLongClick = onLongPress,
+                        ).semantics { contentDescription = "timer tap area" },
+                contentAlignment = Alignment.Center,
+            ) {
+                // Ring occupies the full canvas; the inner clear area is ~80% of
+                // the screen's shorter dimension.
+                QuarterProgressRing(state = state)
 
-            // Scale the font to 20% of the shorter screen edge.
-            // "03:00" at that size is ≈63% of the inner ring diameter,
-            // leaving a comfortable margin on all watch sizes (160–200 dp).
-            val screenMin = min(maxWidth.value, maxHeight.value)
-            TimerDisplay(
-                state = state,
-                fontSize = (screenMin * 0.20f).sp,
-            )
+                // Scale the font to 20% of the shorter screen edge.
+                // "03:00" at that size is ≈63% of the inner ring diameter,
+                // leaving a comfortable margin on all watch sizes (160–200 dp).
+                val screenMin = min(maxWidth.value, maxHeight.value)
+                TimerDisplay(
+                    state = state,
+                    fontSize = (screenMin * 0.20f).sp,
+                )
+            }
         }
     }
 }

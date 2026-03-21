@@ -3,13 +3,17 @@
 [![CI](https://github.com/majuwa/QuaterlyCountdown/actions/workflows/ci.yml/badge.svg)](https://github.com/majuwa/QuaterlyCountdown/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/majuwa/QuaterlyCountdown)](https://github.com/majuwa/QuaterlyCountdown/releases/latest)
 
-A sleek, high-visibility countdown timer designed specifically for Android smartwatches. This app provides a **3-minute countdown** divided into four distinct visual quarters, perfect for HIIT training, public speaking, or productivity sprints.
+A sleek, high-visibility countdown timer designed specifically for Android smartwatches. Choose between a **2-minute** or **3-minute** countdown, each divided into four distinct visual quarters — perfect for HIIT training, public speaking, or productivity sprints.
+
+| Mode selector | Countdown running |
+| :---: | :---: |
+| ![Mode selector — tap upper half for 3 min, lower half for 2 min](docs/screenshots/main-screen.png) | ![Countdown at 01:54 with quarter progress ring](docs/screenshots/countdown.png) |
 
 ---
 
 ## 🚀 Key Features
 
-* **Fixed 3-Minute Timer:** No-fuss, one-tap start.
+* **Dual Timer Mode:** Choose 2-minute or 3-minute countdown from a split-screen selector on launch.
 * **Visual Progress Ring:** A circular ring divided into four 90-degree segments.
 * **Active Quarter Blinking:** The current segment pulses/blinks to give you an at-a-glance status of your progress.
 * **Haptic Feedback:** Three short pulses on each quarter transition; three long buzzes when the countdown ends.
@@ -20,22 +24,27 @@ A sleek, high-visibility countdown timer designed specifically for Android smart
 
 ## 🛠 How It Works
 
-The app divides the total duration of 180 seconds into four equal "Quarters." 
+On launch, the screen splits into two halves — tap the upper half to start a 3-minute timer, or the lower half to start a 2-minute timer. The app divides the chosen duration into four equal quarters shown on the progress ring.
 
 ### The Math
-The logic follows a simple division:
-$$\text{Quarter Duration} = \frac{180\text{ seconds}}{4} = 45\text{ seconds}$$
+
+| Mode | Total | Quarter Duration |
+| :--- | :--- | :--- |
+| **3 min** | 180 s | 45 s |
+| **2 min** | 120 s | 30 s |
 
 ### Gesture Reference
 
 | Gesture | When | Action |
 | :--- | :--- | :--- |
-| **Tap** | IDLE or Paused | Start / Resume |
+| **Tap upper half** | IDLE | Start 3-min timer |
+| **Tap lower half** | IDLE | Start 2-min timer |
+| **Tap** | Paused | Resume |
 | **Tap** | Running | Pause |
-| **Tap** | Finished | Reset to 03:00 |
-| **Long Press** | Any (except IDLE) | Reset to 03:00 immediately |
+| **Tap** | Finished | Return to mode selector |
+| **Long Press** | Running or Paused | Reset to mode selector immediately |
 
-### Visual State Table
+### Visual State Table (3-min example)
 | Quarter | Time Elapsed | Visual Feedback |
 | :--- | :--- | :--- |
 | **1st Quarter** | 0s - 45s | Segment 1 **Blinks** |
@@ -50,7 +59,7 @@ $$\text{Quarter Duration} = \frac{180\text{ seconds}}{4} = 45\text{ seconds}$$
 > **Note:** The UI is built using Jetpack Compose for Wear OS to ensure smooth animations and battery efficiency.
 
 * **Central Display:** Large digital countdown (MM:SS).
-* **The Ring:** A `Canvas`-drawn arc system. 
+* **The Ring:** A `Canvas`-drawn arc system.
 * **Animation:** Uses an `InfiniteTransition` to handle the alpha-pulsing effect on the active segment.
 
 ---
@@ -68,4 +77,4 @@ $$\text{Quarter Duration} = \frac{180\text{ seconds}}{4} = 45\text{ seconds}$$
 
 1. **Clone the repo:**
    ```bash
-   git clone [https://github.com/yourusername/quarterly-countdown.git](https://github.com/yourusername/quarterly-countdown.git)
+   git clone https://github.com/majuwa/QuaterlyCountdown

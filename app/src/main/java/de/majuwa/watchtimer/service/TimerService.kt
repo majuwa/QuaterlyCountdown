@@ -10,8 +10,12 @@ import android.os.IBinder
 import android.os.PowerManager
 import android.os.VibrationEffect
 import android.os.Vibrator
+import de.majuwa.watchtimer.MainActivity
+import de.majuwa.watchtimer.timer.DEFAULT_CONFIG
 import de.majuwa.watchtimer.timer.TICK_INTERVAL_MS
 import de.majuwa.watchtimer.timer.TOTAL_DURATION_MS
+import de.majuwa.watchtimer.timer.TimerConfig
+import de.majuwa.watchtimer.timer.TimerMode
 import de.majuwa.watchtimer.timer.TimerStatus
 import de.majuwa.watchtimer.timer.TimerUiState
 import de.majuwa.watchtimer.timer.computeUiState
@@ -47,6 +51,7 @@ class TimerService : Service() {
         const val ACTION_START = "ACTION_START"
         const val ACTION_PAUSE = "ACTION_PAUSE"
         const val ACTION_RESET = "ACTION_RESET"
+        const val EXTRA_CONFIG_MODE = "EXTRA_CONFIG_MODE"
 
         private const val CHANNEL_ID = "timer_channel"
         private const val NOTIFICATION_ID = 1
@@ -60,8 +65,8 @@ class TimerService : Service() {
         val uiState: StateFlow<TimerUiState> = mutableUiState.asStateFlow()
 
         /** Reset state directly without needing the service to be running. */
-        internal fun resetState() {
-            mutableUiState.value = computeUiState(TOTAL_DURATION_MS, TimerStatus.IDLE)
+        internal fun resetState(config: TimerConfig = DEFAULT_CONFIG) {
+            mutableUiState.value = computeUiState(config.totalDurationMs, TimerStatus.IDLE, config)
         }
     }
 
@@ -74,6 +79,7 @@ class TimerService : Service() {
     // recreation (e.g. after a PAUSE stopSelf) picks up where it left off.
     private var remainingMs: Long = TOTAL_DURATION_MS
     private var lastCompletedQuarters: Int = 0
+    private var config: TimerConfig = DEFAULT_CONFIG
 
     private lateinit var wakeLock: PowerManager.WakeLock
     private lateinit var vibrator: Vibrator
@@ -103,9 +109,18 @@ class TimerService : Service() {
         // after a stopSelf() (e.g. after PAUSE) works correctly.
         remainingMs = mutableUiState.value.remainingMs
         lastCompletedQuarters = mutableUiState.value.completedQuarters
+        config = mutableUiState.value.config
 
         when (intent?.action) {
-            ACTION_START -> startTimer()
+            ACTION_START -> {
+                val modeExtra = intent.getStringExtra(EXTRA_CONFIG_MODE)
+                if (modeExtra != null) {
+                    config = TimerConfig(TimerMode.valueOf(modeExtra))
+                    remainingMs = config.totalDurationMs
+                    lastCompletedQuarters = 0
+                }
+                startTimer()
+            }
             ACTION_PAUSE -> pauseAndStop()
             ACTION_RESET -> resetAndStop()
         }
@@ -135,29 +150,31 @@ class TimerService : Service() {
                     remainingMs -= TICK_INTERVAL_MS
                     if (remainingMs <= 0L) {
                         remainingMs = 0L
-                        mutableUiState.value = computeUiState(0L, TimerStatus.FINISHED)
+                        mutableUiState.value = computeUiState(0L, TimerStatus.FINISHED, config)
                         vibrator.vibrate(finishEffect)
+                        wakeScreen()
                         thisJob.cancel()
                         releaseAndStopForeground()
                         stopSelf()
                     } else {
-                        val newState = computeUiState(remainingMs, TimerStatus.RUNNING)
+                        val newState = computeUiState(remainingMs, TimerStatus.RUNNING, config)
                         if (newState.completedQuarters > lastCompletedQuarters) {
                             lastCompletedQuarters = newState.completedQuarters
                             vibrator.vibrate(quarterEffect)
+                            wakeScreen()
                         }
                         mutableUiState.value = newState
                     }
                 }
             }
         // Reflect RUNNING immediately without waiting for the first tick
-        mutableUiState.value = computeUiState(remainingMs, TimerStatus.RUNNING)
+        mutableUiState.value = computeUiState(remainingMs, TimerStatus.RUNNING, config)
     }
 
     private fun pauseAndStop() {
         tickJob?.cancel()
         tickJob = null
-        mutableUiState.value = computeUiState(remainingMs, TimerStatus.PAUSED)
+        mutableUiState.value = computeUiState(remainingMs, TimerStatus.PAUSED, config)
         releaseAndStopForeground()
         stopSelf()
     }
@@ -173,6 +190,21 @@ class TimerService : Service() {
     private fun releaseAndStopForeground() {
         if (wakeLock.isHeld) wakeLock.release()
         stopForeground(STOP_FOREGROUND_REMOVE)
+    }
+
+    /**
+     * Brings [MainActivity] to the front, which triggers [Activity.setTurnScreenOn] to
+     * wake the display. Using FLAG_ACTIVITY_REORDER_TO_FRONT avoids creating a new instance.
+     */
+    private fun wakeScreen() {
+        val intent =
+            Intent(this, MainActivity::class.java).apply {
+                // FLAG_ACTIVITY_SINGLE_TOP: if MainActivity is already at the top of its task
+                // (e.g. ambient mode), deliver onNewIntent() instead of recreating it.
+                // onNewIntent() calls setTurnScreenOn(true) which pokes the power manager.
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            }
+        startActivity(intent)
     }
 
     // ── Notification ──────────────────────────────────────────────────────────

@@ -5,6 +5,8 @@ import android.content.Intent
 import de.majuwa.watchtimer.service.TimerService
 import de.majuwa.watchtimer.timer.QUARTER_DURATION_MS
 import de.majuwa.watchtimer.timer.TOTAL_DURATION_MS
+import de.majuwa.watchtimer.timer.TimerConfig
+import de.majuwa.watchtimer.timer.TimerMode
 import de.majuwa.watchtimer.timer.TimerStatus
 import de.majuwa.watchtimer.timer.computeUiState
 import de.majuwa.watchtimer.viewmodel.TimerViewModel
@@ -52,6 +54,7 @@ class TimerViewModelTest {
         TimerService.resetState() // always start from IDLE
         mockkConstructor(Intent::class)
         every { anyConstructed<Intent>().setAction(any()) } returns mockk(relaxed = true)
+        every { anyConstructed<Intent>().putExtra(any<String>(), any<String>()) } returns mockk(relaxed = true)
     }
 
     @After
@@ -75,12 +78,11 @@ class TimerViewModelTest {
     // ── Dispatch: correct ACTION sent for each status ───────────────────────
 
     @Test
-    fun `onTap from IDLE sends ACTION_START`() =
+    fun `onTap from IDLE is a no-op`() =
         runTest(testDispatcher) {
             val vm = buildVm() // service state = IDLE
             vm.onTap()
-            verify { anyConstructed<Intent>().setAction(TimerService.ACTION_START) }
-            verify { mockApplication.startService(any()) }
+            verify(exactly = 0) { mockApplication.startService(any()) }
         }
 
     @Test
@@ -112,6 +114,27 @@ class TimerViewModelTest {
             verify(exactly = 0) { mockApplication.startService(any()) }
             assertEquals(TimerStatus.IDLE, vm.uiState.value.status)
             assertEquals(TOTAL_DURATION_MS, vm.uiState.value.remainingMs)
+        }
+
+    // ── onSelectMode dispatch ───────────────────────────────────────────────
+
+    @Test
+    fun `onSelectMode TWO_MINUTES from IDLE sends ACTION_START with correct extra`() =
+        runTest(testDispatcher) {
+            val vm = buildVm() // service state = IDLE
+            vm.onSelectMode(TimerMode.TWO_MINUTES)
+            verify { anyConstructed<Intent>().setAction(TimerService.ACTION_START) }
+            verify { anyConstructed<Intent>().putExtra(TimerService.EXTRA_CONFIG_MODE, TimerMode.TWO_MINUTES.name) }
+            verify { mockApplication.startService(any()) }
+        }
+
+    @Test
+    fun `onSelectMode from RUNNING is ignored`() =
+        runTest(testDispatcher) {
+            TimerService.mutableUiState.value = computeUiState(TOTAL_DURATION_MS, TimerStatus.RUNNING)
+            val vm = buildVm()
+            vm.onSelectMode(TimerMode.TWO_MINUTES)
+            verify(exactly = 0) { mockApplication.startService(any()) }
         }
 
     // ── Long press dispatch ─────────────────────────────────────────────────

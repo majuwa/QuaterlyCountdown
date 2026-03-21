@@ -3,6 +3,8 @@ package com.example.watchtimer.timer
 import app.cash.turbine.test
 import de.majuwa.watchtimer.timer.QUARTER_COUNT
 import de.majuwa.watchtimer.timer.TOTAL_DURATION_MS
+import de.majuwa.watchtimer.timer.TimerConfig
+import de.majuwa.watchtimer.timer.TimerMode
 import de.majuwa.watchtimer.timer.TimerStatus
 import de.majuwa.watchtimer.timer.completedQuarters
 import de.majuwa.watchtimer.timer.computeUiState
@@ -108,6 +110,33 @@ class TimerLogicTest {
     @Test
     fun `currentQuarterProgress is 1 at zero remaining`() {
         assertEquals(1f, currentQuarterProgress(0L), 0.001f)
+    }
+
+    // ── 2-minute mode ────────────────────────────────────────────────────────
+
+    @Test
+    fun `computeUiState 2-min full duration shows 2 minutes`() {
+        val config = TimerConfig(TimerMode.TWO_MINUTES)
+        val state = computeUiState(config.totalDurationMs, TimerStatus.IDLE, config)
+        assertEquals(TimerStatus.IDLE, state.status)
+        assertEquals(2, state.displayMinutes)
+        assertEquals(0, state.displaySeconds)
+        assertEquals(0, state.completedQuarters)
+        assertEquals(0f, state.currentQuarterProgress, 0.001f)
+    }
+
+    @Test
+    fun `completedQuarters is 1 after 30s elapsed in 2-min mode`() {
+        // 2-min total = 120 000ms, quarter = 30 000ms; after 30s elapsed → 90 000ms remaining
+        val config = TimerConfig(TimerMode.TWO_MINUTES)
+        assertEquals(1, completedQuarters(90_000L, config))
+    }
+
+    @Test
+    fun `currentQuarterProgress is 0_5 at midpoint of 2-min first quarter`() {
+        // first quarter is 30 000ms; midpoint elapsed = 15 000ms → remaining = 105 000ms
+        val config = TimerConfig(TimerMode.TWO_MINUTES)
+        assertEquals(0.5f, currentQuarterProgress(105_000L, config), 0.001f)
     }
 
     // ── tickerFlow ──────────────────────────────────────────────────────────

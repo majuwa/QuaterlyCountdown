@@ -26,8 +26,14 @@ import de.majuwa.watchtimer.timer.QUARTER_COUNT
 import de.majuwa.watchtimer.timer.TimerStatus
 import de.majuwa.watchtimer.timer.TimerUiState
 
-private const val GAP_DEGREES = 4f
-private const val ARC_SWEEP = 90f - GAP_DEGREES // 86° per quarter
+private const val SMALL_GAP_DEGREES = 4f
+
+// Larger gap at 12 o'clock so the Scaffold's TimeText is never overlapped.
+private const val TOP_GAP_DEGREES = 36f
+
+// Remaining degrees distributed equally among the 4 arcs.
+// (360 - 36 - 3 × 4) / 4 = 312 / 4 = 78°
+private val ARC_SWEEP = (360f - TOP_GAP_DEGREES - (QUARTER_COUNT - 1) * SMALL_GAP_DEGREES) / QUARTER_COUNT
 
 private data class ArcStyle(
     val color: Color,
@@ -81,8 +87,9 @@ fun QuarterProgressRing(
         val arcSize = Size(ringRadius * 2f, ringRadius * 2f)
 
         repeat(QUARTER_COUNT) { index ->
-            // Quarter 0 starts at 12 o'clock; each subsequent quarter is +90°
-            val startAngle = 270f + index * 90f + GAP_DEGREES / 2f
+            // Quarter 0 starts TOP_GAP_DEGREES/2 past 12 o'clock (clockwise).
+            // Each subsequent quarter follows after its arc sweep + a small gap.
+            val startAngle = 270f + TOP_GAP_DEGREES / 2f + index * (ARC_SWEEP + SMALL_GAP_DEGREES)
             val arcStyle =
                 when {
                     index < state.completedQuarters -> {

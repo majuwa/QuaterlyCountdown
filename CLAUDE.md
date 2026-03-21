@@ -154,6 +154,7 @@ After adding a feature or making any code change:
 ## Coding Guidelines
 * do not suppress issues, unless asked to
 * if suppress is best decision ask whether it should be done or an alternative should be found
+* if a lock or something similar is required, use if possible a timeout so that it will be release 
 
 ## Additional Reference
 
