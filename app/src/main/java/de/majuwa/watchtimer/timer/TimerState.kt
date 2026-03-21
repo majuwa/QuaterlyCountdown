@@ -7,7 +7,9 @@ const val TICK_INTERVAL_MS: Long = 100L
 
 enum class TimerMode { TWO_MINUTES, THREE_MINUTES }
 
-data class TimerConfig(val mode: TimerMode) {
+data class TimerConfig(
+    val mode: TimerMode,
+) {
     val totalDurationMs: Long get() = if (mode == TimerMode.TWO_MINUTES) 120_000L else 180_000L
     val quarterDurationMs: Long get() = totalDurationMs / QUARTER_COUNT
 }

@@ -61,6 +61,14 @@ dependencies {
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.lifecycle.runtime.ktx)
 
+    // Wear Tiles + ProtoLayout
+    implementation(libs.wear.tiles)
+    implementation(libs.protolayout)
+    implementation(libs.protolayout.material)
+    implementation(libs.protolayout.expression)
+    implementation(libs.guava)
+    debugImplementation(libs.wear.tiles.renderer)
+
     // Coroutines
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)

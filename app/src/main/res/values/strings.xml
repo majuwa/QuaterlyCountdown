@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Quarterly Countdown</string>
+    <string name="tile_label">Countdown</string>
+    <string name="tile_description">2 or 3 minute countdown timer</string>
 </resources>

@@ -20,7 +20,10 @@ fun tickerFlow(intervalMs: Long = TICK_INTERVAL_MS): Flow<Unit> =
  * Returns how many full quarters have elapsed given [remainingMs].
  * Result is clamped to [0, QUARTER_COUNT].
  */
-fun completedQuarters(remainingMs: Long, config: TimerConfig = DEFAULT_CONFIG): Int {
+fun completedQuarters(
+    remainingMs: Long,
+    config: TimerConfig = DEFAULT_CONFIG,
+): Int {
     val clampedMs = remainingMs.coerceIn(0L, config.totalDurationMs)
     val elapsedMs = config.totalDurationMs - clampedMs
     return (elapsedMs / config.quarterDurationMs).toInt().coerceIn(0, QUARTER_COUNT)
@@ -30,7 +33,10 @@ fun completedQuarters(remainingMs: Long, config: TimerConfig = DEFAULT_CONFIG): 
  * Returns the fraction of the current (active) quarter that has been consumed (0.0–1.0).
  * Returns 1.0 when [remainingMs] is 0 (all time elapsed).
  */
-fun currentQuarterProgress(remainingMs: Long, config: TimerConfig = DEFAULT_CONFIG): Float {
+fun currentQuarterProgress(
+    remainingMs: Long,
+    config: TimerConfig = DEFAULT_CONFIG,
+): Float {
     val clampedMs = remainingMs.coerceIn(0L, config.totalDurationMs)
     if (clampedMs <= 0L) return 1f
     val elapsedMs = config.totalDurationMs - clampedMs

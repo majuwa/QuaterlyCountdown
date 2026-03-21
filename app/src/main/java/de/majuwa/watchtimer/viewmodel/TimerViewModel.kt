@@ -29,11 +29,8 @@ class TimerViewModel(
     fun onTap() {
         when (uiState.value.status) {
             TimerStatus.IDLE -> Unit
-
             TimerStatus.PAUSED -> sendAction(TimerService.ACTION_START)
-
             TimerStatus.RUNNING -> sendAction(TimerService.ACTION_PAUSE)
-
             TimerStatus.FINISHED -> TimerService.resetState()
         }
     }

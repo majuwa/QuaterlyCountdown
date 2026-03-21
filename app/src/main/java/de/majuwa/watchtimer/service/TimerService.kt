@@ -10,7 +10,9 @@ import android.os.IBinder
 import android.os.PowerManager
 import android.os.VibrationEffect
 import android.os.Vibrator
+import androidx.wear.tiles.TileService
 import de.majuwa.watchtimer.MainActivity
+import de.majuwa.watchtimer.tile.CountdownTileService
 import de.majuwa.watchtimer.timer.DEFAULT_CONFIG
 import de.majuwa.watchtimer.timer.TICK_INTERVAL_MS
 import de.majuwa.watchtimer.timer.TOTAL_DURATION_MS
@@ -44,6 +46,7 @@ import kotlinx.coroutines.launch
  * Timer state is shared through a companion-object StateFlow so the ViewModel
  * can observe it without binding.
  */
+@Suppress("TooManyFunctions") // service owns timer lifecycle, notification, wake lock, and vibration
 class TimerService : Service() {
     // ── Shared state (survives service recreation while companion object lives) ──
 
@@ -121,8 +124,14 @@ class TimerService : Service() {
                 }
                 startTimer()
             }
-            ACTION_PAUSE -> pauseAndStop()
-            ACTION_RESET -> resetAndStop()
+
+            ACTION_PAUSE -> {
+                pauseAndStop()
+            }
+
+            ACTION_RESET -> {
+                resetAndStop()
+            }
         }
         return START_NOT_STICKY
     }
@@ -151,6 +160,7 @@ class TimerService : Service() {
                     if (remainingMs <= 0L) {
                         remainingMs = 0L
                         mutableUiState.value = computeUiState(0L, TimerStatus.FINISHED, config)
+                        TileService.getUpdater(this@TimerService).requestUpdate(CountdownTileService::class.java)
                         vibrator.vibrate(finishEffect)
                         wakeScreen()
                         thisJob.cancel()
@@ -169,12 +179,14 @@ class TimerService : Service() {
             }
         // Reflect RUNNING immediately without waiting for the first tick
         mutableUiState.value = computeUiState(remainingMs, TimerStatus.RUNNING, config)
+        TileService.getUpdater(this).requestUpdate(CountdownTileService::class.java)
     }
 
     private fun pauseAndStop() {
         tickJob?.cancel()
         tickJob = null
         mutableUiState.value = computeUiState(remainingMs, TimerStatus.PAUSED, config)
+        TileService.getUpdater(this).requestUpdate(CountdownTileService::class.java)
         releaseAndStopForeground()
         stopSelf()
     }
@@ -183,6 +195,7 @@ class TimerService : Service() {
         tickJob?.cancel()
         tickJob = null
         resetState()
+        TileService.getUpdater(this).requestUpdate(CountdownTileService::class.java)
         releaseAndStopForeground()
         stopSelf()
     }

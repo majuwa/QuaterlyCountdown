@@ -19,6 +19,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # Run instrumented UI tests (requires Wear OS emulator API 30+ running)
 ./gradlew connectedAndroidTest
+
+# Run spotless to check for formatting issues
+./gradlew spotlessCheck t
 ```
 
 > **Note:** `gradlew` is committed. If it is ever missing, regenerate it with
@@ -148,8 +151,8 @@ After adding a feature or making any code change:
 1. **Run all tests** — `./gradlew test` must pass before considering the change done.
 2. **Update `README.md`** — if the change affects user-facing behaviour, features, gestures, or visual design.
 3. **Update `CLAUDE.md`** — if the change affects architecture, key conventions, package structure, tech stack, or testing patterns.
-4. **Run Spotless**
-5. **Rrun Detect**
+4. **Run Spotless** -`./gradlew spotlessCheck` spotless muss pass before considering the change done
+5. **Run Detect** - no new detekt issues or ask the user whether they are ok
 
 ## Coding Guidelines
 * do not suppress issues, unless asked to
